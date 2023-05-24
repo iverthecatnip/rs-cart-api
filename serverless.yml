@@ -1,0 +1,41 @@
+service: cart-service
+
+frameworkVersion: '3'
+
+plugins:
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: dev
+  region: eu-west-1
+  environment:
+    DB_USERNAME: ${self:custom.dbCredentials.user}
+    DB_PASSWORD: ${self:custom.dbCredentials.password}
+    DB_NAME: ${self:custom.dbCredentials.database}
+    DB_HOST: ${self:custom.dbCredentials.host}
+    DB_PORT: ${self:custom.dbCredentials.port}
+
+custom:
+  dbCredentials:
+    user: ${file(./db.yml):user}
+    password: ${file(./db.yml):password}
+    host: ${file(./db.yml):host}
+    database: ${file(./db.yml):database}
+    port: ${file(./db.yml):port}
+
+
+
+functions:
+  main:
+    handler: dist/main.handler
+    events:
+      - http:
+          method: ANY
+          path: /
+      - http:
+          method: ANY
+          path: '{proxy+}'
+
+
