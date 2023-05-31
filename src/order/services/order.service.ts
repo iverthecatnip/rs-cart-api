@@ -1,34 +1,52 @@
 import { Injectable } from '@nestjs/common';
-import { v4 } from 'uuid';
 
 import { Order } from '../models';
+import {
+  createOrder,
+  getAllOrders,
+  getOrderById,
+  deleteOrder,
+  updateProductsCount, updateOrderStatus
+} from "../../shared/services/database";
 
 @Injectable()
 export class OrderService {
   private orders: Record<string, Order> = {}
 
-  findById(orderId: string): Order {
-    return this.orders[ orderId ];
+  async findOrders() {
+    const orders = await getAllOrders();
+    return orders;
   }
 
-  create(data: any) {
-    const id = v4(v4())
-    const order = {
-      ...data,
-      id,
-      status: 'inProgress',
-    };
+  async findOrderById(orderId) {
+    const orders = await getOrderById(orderId);
+    return orders;
+  }
 
-    this.orders[ id ] = order;
-
+  async create(data: any) {
+    const order = await createOrder(data);
     return order;
   }
 
-  update(orderId, data) {
-    const order = this.findById(orderId);
+  async delete(data: any) {
+    const order = await deleteOrder(data);
+    return order;
+  }
 
+  async update(orderId, data) {
+    const order = await this.findOrderById(orderId);
     if (!order) {
       throw new Error('Order does not exist.');
+    }
+
+    await updateOrderStatus(orderId, data.status);
+
+
+    if(data.status === 'APPROVED'){
+      order.items.forEach(item => {
+        updateProductsCount(item.productId,item.count)
+      })
+
     }
 
     this.orders[ orderId ] = {

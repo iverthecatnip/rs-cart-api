@@ -5,5 +5,9 @@ import { AppRequest } from '../models';
  * @returns {string}
  */
 export function getUserIdFromRequest(request: AppRequest): string {
-  return request.user && request.user.id;
+  return request.params.userid;
+}
+
+export function getOrderIdFromRequest(request: AppRequest): string {
+  return request.params.orderId;
 }
